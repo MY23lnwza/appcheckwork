@@ -197,4 +197,221 @@
         localStorage.setItem("currentUser", currentUser);
         localStorage.setItem("currentRole", currentRole);
         document.getElementById("loginBox").classList.add("hidden");
-        document.getElementById(role + "Box").classList
+        document.getElementById(role + "Box").classList.remove("hidden");
+        if (currentRole === "user") {
+          document.getElementById("userName").innerText = currentUser;
+        }
+        loadTasks();
+      } else {
+        alert("รหัสผ่านไม่ถูกต้อง");
+      }
+    }
+
+    function logout() {
+      currentUser = "";
+      currentRole = "";
+      localStorage.removeItem("currentUser");
+      localStorage.removeItem("currentRole");
+      document.getElementById("loginPass").value = "";
+      document.getElementById("loginBox").classList.remove("hidden");
+      document.getElementById("adminBox").classList.add("hidden");
+      document.getElementById("userBox").classList.add("hidden");
+    }
+
+    async function loadTasks() {
+      try {
+        const res = await fetch(SHEET_URL + "?action=read");
+        tasks = await res.json();
+        renderTasks();
+      } catch (e) {
+        alert("โหลดข้อมูลผิดพลาด");
+        console.error(e);
+      }
+    }
+
+    async function addTask() {
+      const title = document.getElementById("taskTitle").value.trim();
+      const orderDate = document.getElementById("taskOrderDate").value;
+      const due = document.getElementById("taskDue").value;
+      const brief = document.getElementById("taskBrief").value.trim();
+      const assignTo = document.getElementById("taskAssignTo").value;
+      const adminNote = document.getElementById("taskAdminNote").value.trim();
+      const now = new Date().toLocaleString("th-TH");
+
+      if (!title || !orderDate || !due || !assignTo) {
+        alert("กรุณากรอกข้อมูลให้ครบ");
+        return;
+      }
+
+      try {
+        await fetch(SHEET_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "add",
+            title,
+            orderDate,
+            due,
+            brief,
+            assignTo,
+            adminNote,
+            date: now,
+          }),
+        });
+        clearAdminForm();
+        await loadTasks();
+      } catch (e) {
+        alert("ส่งงานล้มเหลว");
+        console.error(e);
+      }
+    }
+
+    async function deleteTask(id) {
+      if (!confirm("ยืนยันการลบงานนี้?")) return;
+      try {
+        await fetch(SHEET_URL, {
+          method: "POST",
+          body: JSON.stringify({ action: "delete", id }),
+        });
+        await loadTasks();
+      } catch (e) {
+        alert("ลบงานล้มเหลว");
+        console.error(e);
+      }
+    }
+
+    async function submitWork(id, workLink, note) {
+      if (!workLink.trim()) {
+        alert("กรุณากรอกลิงก์งาน");
+        return;
+      }
+      const now = new Date().toLocaleString("th-TH");
+      try {
+        await fetch(SHEET_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "submit",
+            id,
+            workLink,
+            note,
+            date: now,
+            sender: currentUser,
+          }),
+        });
+        await loadTasks();
+      } catch (e) {
+        alert("ส่งงานล้มเหลว");
+        console.error(e);
+      }
+    }
+
+    async function updateStatus(id, status, comment = "") {
+      try {
+        await fetch(SHEET_URL, {
+          method: "POST",
+          body: JSON.stringify({ action: "review", id, status, comment }),
+        });
+        await loadTasks();
+      } catch (e) {
+        alert("อัปเดตสถานะล้มเหลว");
+        console.error(e);
+      }
+    }
+
+    function clearAdminForm() {
+      document.getElementById("taskTitle").value = "";
+      document.getElementById("taskOrderDate").value = "";
+      document.getElementById("taskDue").value = "";
+      document.getElementById("taskBrief").value = "";
+      document.getElementById("taskAdminNote").value = "";
+    }
+
+    function calcLevel(exp) {
+      // กำหนดว่า LV99 ต้องใช้ 3000 งาน
+      const maxExp = 3000;
+      const maxLevel = 99;
+      if (exp >= maxExp) return maxLevel;
+      return Math.max(1, Math.floor((exp / maxExp) * maxLevel));
+    }
+
+    function renderTasks() {
+      const adminDiv = document.getElementById("adminTasks");
+      const userDiv = document.getElementById("userTasks");
+      const userSub = document.getElementById("userSubmitted");
+      adminDiv.innerHTML = "";
+      userDiv.innerHTML = "";
+      userSub.innerHTML = "";
+
+      // คำนวณจำนวนงานที่ user ส่งสำเร็จ (สถานะ approved)
+      let completedCount = 0;
+
+      tasks.forEach((t) => {
+        if (currentRole === "user" && t.assignTo.toLowerCase() === currentUser.toLowerCase() && t.status === "approved") {
+          completedCount++;
+        }
+      });
+
+      if (currentRole === "user") {
+        // อัปเดตเลเวลผู้ใช้
+        const lv = calcLevel(completedCount);
+        document.getElementById("userLevel").innerText = lv;
+        const progressPercent = ((completedCount / 3000) * 100).toFixed(2);
+        document.getElementById("userProgress").style.width = Math.min(progressPercent, 100) + "%";
+      }
+
+      tasks.forEach((t) => {
+        const statusClass =
+          t.status === "approved"
+            ? "status-green"
+            : t.status === "edit"
+            ? "status-orange"
+            : "status-yellow";
+
+        const baseInfo = `
+          <div class="card" style="margin-bottom: 0.7rem;">
+            <h4>${t.title}</h4>
+            <p>👤 ผู้รับ: ${t.assignTo} | 📅 สั่งงาน: ${t.orderDate} | 📅 กำหนดส่ง: ${t.due}</p>
+            <p>🔗 <a href="${t.brief || "#"}" target="_blank">บรีฟ</a></p>
+            <p>${t.adminNote ? "📌 หมายเหตุ: " + t.adminNote : ""}</p>
+            <p class="${statusClass}">สถานะ: ${t.status}</p>
+        `;
+
+        if (currentRole === "admin") {
+          adminDiv.innerHTML +=
+            baseInfo +
+            `
+            <p>🛠 ลิงก์งาน: <a href="${t.workLink || "#"}" target="_blank">${t.workLink || "-"}</a></p>
+            <textarea placeholder="คอมเมนต์" oninput="this.dataset.val=this.value"></textarea>
+            <button onclick="updateStatus(${t.id}, 'approved', this.previousElementSibling.dataset.val)">✔ ผ่าน</button>
+            <button onclick="updateStatus(${t.id}, 'edit', this.previousElementSibling.dataset.val)">✏ แก้ไข</button>
+            <button style="background:#f44336;" onclick="deleteTask(${t.id})">🗑 ลบ</button>
+          </div>
+          `;
+        } else if (
+          currentRole === "user" &&
+          t.assignTo.toLowerCase() === currentUser.toLowerCase()
+        ) {
+          if (t.status === "assigned" || t.status === "edit") {
+            userDiv.innerHTML +=
+              baseInfo +
+              `
+              <textarea placeholder="ลิงก์งาน" oninput="this.dataset.link=this.value"></textarea>
+              <textarea placeholder="หมายเหตุ" oninput="this.dataset.note=this.value"></textarea>
+              <button onclick="submitWork(${t.id}, this.previousElementSibling.previousElementSibling.dataset.link, this.previousElementSibling.dataset.note)">📤 ส่งงาน</button>
+            </div>
+            `;
+          } else if (t.status === "submitted" || t.status === "approved") {
+            userSub.innerHTML +=
+              baseInfo +
+              `
+              <p>💬 หมายเหตุ: ${t.note || "-"}</p>
+              <p>🗒 คอมเมนต์: ${t.comment || "-"}</p>
+              <p>📅 ส่งคืนเมื่อ: ${t.submitDate || "-"}</p>
+            </div>
+            `;
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
