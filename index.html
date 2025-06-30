@@ -25,7 +25,6 @@
 
 <div class="container">
 
-  <!-- Login -->
   <div id="loginBox" class="card">
     <h2>เข้าสู่ระบบ</h2>
     <select id="loginRole">
@@ -36,13 +35,12 @@
     <button onclick="login()">เข้าสู่ระบบ</button>
   </div>
 
-  <!-- Admin Page -->
   <div id="adminBox" class="hidden">
     <div class="card">
       <h3>🗂 เพิ่มงานใหม่</h3>
       <input type="text" id="taskTitle" placeholder="ชื่องาน">
-      <input type="datetime-local" id="taskOrderDate" placeholder="วันที่สั่ง">
-      <input type="datetime-local" id="taskDue" placeholder="กำหนดส่ง">
+      <input type="datetime-local" id="taskOrderDate">
+      <input type="datetime-local" id="taskDue">
       <input type="text" id="taskBrief" placeholder="ลิงก์บรีฟงาน">
       <select id="taskAssignTo">
         <option value="">เลือกผู้รับ</option>
@@ -58,7 +56,6 @@
     <button onclick="logout()" style="margin-top: 2rem; background:#f44336;">ออกจากระบบ</button>
   </div>
 
-  <!-- User Page -->
   <div id="userBox" class="hidden">
     <div class="section-title">📬 งานที่ได้รับ</div>
     <div id="userTasks"></div>
@@ -69,179 +66,6 @@
 
 </div>
 
-<script>
-const SHEET_URL = 'ลิงก์ Google Script ของคุณ'; // เปลี่ยนเป็นลิงก์จริง
-
-let tasks = [];
-let currentUser = '';
-let currentRole = '';
-
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Enter' && !document.getElementById('loginBox').classList.contains('hidden')) {
-    login();
-  }
-});
-
-function login() {
-  const role = document.getElementById('loginRole').value;
-  const pass = document.getElementById('loginPass').value;
-  if ((role === 'admin' && pass === '1234') || (role === 'user' && pass === 'Luk1234')) {
-    currentUser = (role === 'admin') ? 'GM' : 'goblin';
-    currentRole = role;
-    document.getElementById('loginBox').classList.add('hidden');
-    document.getElementById(role + 'Box').classList.remove('hidden');
-    loadTasks();
-  } else {
-    alert('รหัสผ่านไม่ถูกต้อง');
-  }
-}
-
-function logout() {
-  currentUser = '';
-  currentRole = '';
-  document.getElementById('loginPass').value = '';
-  document.getElementById('loginBox').classList.remove('hidden');
-  document.getElementById('adminBox').classList.add('hidden');
-  document.getElementById('userBox').classList.add('hidden');
-}
-
-async function loadTasks() {
-  try {
-    const res = await fetch(SHEET_URL + '?action=read');
-    tasks = await res.json();
-    renderTasks();
-  } catch (e) {
-    alert('โหลดข้อมูลผิดพลาด');
-    console.error(e);
-  }
-}
-
-async function addTask() {
-  const title = document.getElementById('taskTitle').value.trim();
-  const orderDate = document.getElementById('taskOrderDate').value;
-  const due = document.getElementById('taskDue').value;
-  const brief = document.getElementById('taskBrief').value.trim();
-  const assignTo = document.getElementById('taskAssignTo').value;
-
-  if (!title || !orderDate || !due || !assignTo) {
-    alert('กรุณากรอกข้อมูลให้ครบ');
-    return;
-  }
-
-  try {
-    await fetch(SHEET_URL, {
-      method: 'POST',
-      body: JSON.stringify({ action: 'add', title, orderDate, due, brief, assignTo })
-    });
-    clearAdminForm();
-    await loadTasks();
-  } catch (e) {
-    alert('ส่งงานล้มเหลว');
-    console.error(e);
-  }
-}
-
-async function deleteTask(id) {
-  if (!confirm('คุณแน่ใจว่าต้องการลบงานนี้?')) return;
-  try {
-    await fetch(SHEET_URL, {
-      method: 'POST',
-      body: JSON.stringify({ action: 'delete', id })
-    });
-    await loadTasks();
-  } catch (e) {
-    alert('ลบงานล้มเหลว');
-    console.error(e);
-  }
-}
-
-async function submitWork(id, workLink, note) {
-  if (!workLink.trim()) {
-    alert('กรุณากรอก ลิงก์งาน');
-    return;
-  }
-  const now = new Date().toLocaleString('th-TH');
-  try {
-    await fetch(SHEET_URL, {
-      method: 'POST',
-      body: JSON.stringify({ action: 'submit', id, workLink, note, sender: currentUser, date: now })
-    });
-    await loadTasks();
-  } catch (e) {
-    alert('ส่งงานล้มเหลว');
-    console.error(e);
-  }
-}
-
-async function updateStatus(id, status, comment = '') {
-  try {
-    await fetch(SHEET_URL, {
-      method: 'POST',
-      body: JSON.stringify({ action: 'review', id, status, comment })
-    });
-    await loadTasks();
-  } catch (e) {
-    alert('อัปเดตสถานะล้มเหลว');
-    console.error(e);
-  }
-}
-
-function clearAdminForm() {
-  document.getElementById('taskTitle').value = '';
-  document.getElementById('taskOrderDate').value = '';
-  document.getElementById('taskDue').value = '';
-  document.getElementById('taskBrief').value = '';
-  document.getElementById('taskAssignTo').value = '';
-}
-
-function renderTasks() {
-  const adminDiv = document.getElementById('adminTasks');
-  const userDiv = document.getElementById('userTasks');
-  const userSub = document.getElementById('userSubmitted');
-  adminDiv.innerHTML = '';
-  userDiv.innerHTML = '';
-  userSub.innerHTML = '';
-
-  tasks.forEach(t => {
-    const statusClass = t.status === 'approved' ? 'status-green' :
-                        t.status === 'edit' ? 'status-orange' : 'status-yellow';
-
-    const baseInfo = `
-      <div class="card" style="margin-bottom: 0.7rem;">
-        <h4>${t.title}</h4>
-        <p>👤 ผู้รับ: ${t.assignTo}</p>
-        <p>📅 วันที่สั่ง: ${t.orderDate}</p>
-        <p>📆 กำหนดส่ง: ${t.due}</p>
-        <p>🔗 <a href="${t.brief || '#'}" target="_blank" rel="noopener noreferrer">บรีฟ</a></p>
-        <p class="${statusClass}">สถานะ: ${t.status}</p>
-    `;
-
-    if (currentRole === 'admin') {
-      adminDiv.innerHTML += baseInfo + `
-        <p>🛠 ลิงก์งาน: <a href="${t.workLink || '#'}" target="_blank" rel="noopener noreferrer">${t.workLink || '-'}</a></p>
-        <textarea placeholder="คอมเมนต์" oninput="this.dataset.val = this.value"></textarea>
-        <button onclick="updateStatus(${t.id}, 'approved', this.previousElementSibling.dataset.val)">✔ ผ่าน</button>
-        <button onclick="updateStatus(${t.id}, 'edit', this.previousElementSibling.dataset.val)">✏ แก้ไข</button>
-        <button onclick="deleteTask(${t.id})" style="background:#e11d48;margin-top:0.5rem;">🗑 ลบงาน</button>
-      </div>`;
-    } else if (currentRole === 'user' && t.assignTo.toLowerCase() === currentUser.toLowerCase()) {
-      if (t.status === 'assigned' || t.status === 'edit') {
-        userDiv.innerHTML += baseInfo + `
-          <textarea placeholder="ลิงก์งาน" oninput="this.dataset.link=this.value"></textarea>
-          <textarea placeholder="หมายเหตุ" oninput="this.dataset.note=this.value"></textarea>
-          <button onclick="submitWork(${t.id}, this.previousElementSibling.previousElementSibling.dataset.link, this.previousElementSibling.dataset.note)">📤 ส่งงาน</button>
-        </div>`;
-      } else {
-        userSub.innerHTML += baseInfo + `
-          <p>💬 หมายเหตุ: ${t.note || '-'}</p>
-          <p>🗒 คอมเมนต์: ${t.comment || '-'}</p>
-          <p>📅 ส่งคืนเมื่อ: ${t.submitDate || '-'}</p>
-        </div>`;
-      }
-    }
-  });
-}
-</script>
-
+<script src="script.js"></script>
 </body>
 </html>
