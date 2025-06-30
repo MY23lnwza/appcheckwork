@@ -20,47 +20,46 @@
   </style>
 </head>
 <body>
-  <header>📋 ระบบจัดการและตรวจงาน (Google Sheets)</header>
+<header>📋 ระบบจัดการและตรวจงาน (Google Sheets)</header>
 
-  <div class="container">
-    <!-- Login -->
-    <div id="loginBox" class="card">
-      <h2>เข้าสู่ระบบ</h2>
-      <input type="text" id="loginUser" placeholder="ชื่อผู้ใช้" />
-      <select id="loginRole">
-        <option value="user">goblin Lv.1</option>
-        <option value="admin">GM</option>
-      </select>
-      <input type="password" id="loginPass" placeholder="รหัสผ่าน" />
-      <button onclick="login()">เข้าสู่ระบบ</button>
-    </div>
-
-    <!-- Admin Page -->
-    <div id="adminBox" class="hidden">
-      <div class="card">
-        <h3>🗂 เพิ่มงานใหม่</h3>
-        <input type="text" id="taskTitle" placeholder="ชื่องาน" />
-        <input type="date" id="taskDue" />
-        <input type="text" id="taskBrief" placeholder="ลิงก์บรีฟงาน" />
-        <input type="text" id="taskAssignTo" placeholder="มอบหมายให้ (ชื่อยูสเซอร์)" />
-        <button onclick="addTask()">📌 ส่งงาน</button>
-      </div>
-
-      <div class="section-title">📄 งานทั้งหมด</div>
-      <div id="adminTasks"></div>
-      <button onclick="logout()" style="margin-top: 2rem; background:#f44336;">ออกจากระบบ</button>
-    </div>
-
-    <!-- User Page -->
-    <div id="userBox" class="hidden">
-      <div class="section-title">📬 งานที่ได้รับ</div>
-      <div id="userTasks"></div>
-
-      <div class="section-title">✅ งานที่ส่งไปแล้ว</div>
-      <div id="userSubmitted"></div>
-      <button onclick="logout()" style="margin-top: 2rem; background:#f44336;">ออกจากระบบ</button>
-    </div>
+<div class="container">
+  <!-- Login -->
+  <div id="loginBox" class="card">
+    <h2>เข้าสู่ระบบ</h2>
+    <select id="loginRole">
+      <option value="user">goblin Lv.1</option>
+      <option value="admin">GM</option>
+    </select>
+    <input type="password" id="loginPass" placeholder="รหัสผ่าน" />
+    <button onclick="login()">เข้าสู่ระบบ</button>
   </div>
+
+  <!-- Admin Page -->
+  <div id="adminBox" class="hidden">
+    <div class="card">
+      <h3>🗂 เพิ่มงานใหม่</h3>
+      <input type="text" id="taskTitle" placeholder="ชื่องาน" />
+      <input type="date" id="taskDue" />
+      <input type="text" id="taskBrief" placeholder="ลิงก์บรีฟงาน" />
+      <input type="text" id="taskAssignTo" placeholder="มอบหมายให้ (ชื่อยูสเซอร์)" />
+      <button onclick="addTask()">📌 ส่งงาน</button>
+    </div>
+
+    <div class="section-title">📄 งานทั้งหมด</div>
+    <div id="adminTasks"></div>
+    <button onclick="logout()" style="margin-top: 2rem; background:#f44336;">ออกจากระบบ</button>
+  </div>
+
+  <!-- User Page -->
+  <div id="userBox" class="hidden">
+    <div class="section-title">📬 งานที่ได้รับ</div>
+    <div id="userTasks"></div>
+
+    <div class="section-title">✅ งานที่ส่งไปแล้ว</div>
+    <div id="userSubmitted"></div>
+    <button onclick="logout()" style="margin-top: 2rem; background:#f44336;">ออกจากระบบ</button>
+  </div>
+</div>
 
 <script>
   const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwR8_rbWhPCI8gCK4dubP_xaGZvXGW00r7EQO6i_6zyTCz8zwSUHinatf8LapDTUVkqtQ/exec';
@@ -69,12 +68,17 @@
   let currentUser = '';
   let currentRole = '';
 
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !document.getElementById('loginBox').classList.contains('hidden')) {
+      login();
+    }
+  });
+
   function login() {
-    const user = document.getElementById('loginUser').value.trim();
     const role = document.getElementById('loginRole').value;
     const pass = document.getElementById('loginPass').value;
     if ((role === 'admin' && pass === '1234') || (role === 'user' && pass === 'Luk1234')) {
-      currentUser = user || (role === 'admin' ? 'GM' : 'goblin');
+      currentUser = (role === 'admin') ? 'GM' : 'goblin';
       currentRole = role;
       document.getElementById('loginBox').classList.add('hidden');
       document.getElementById(role + 'Box').classList.remove('hidden');
@@ -87,7 +91,6 @@
   function logout() {
     currentUser = '';
     currentRole = '';
-    document.getElementById('loginUser').value = '';
     document.getElementById('loginPass').value = '';
     document.getElementById('loginBox').classList.remove('hidden');
     document.getElementById('adminBox').classList.add('hidden');
@@ -197,7 +200,7 @@
           <button onclick="updateStatus(${t.id}, 'edit', this.previousElementSibling.dataset.val)">✏ แก้ไข</button>
           </div>
         `;
-      } else if (currentRole === 'user' && t.assignTo.toLowerCase() === currentUser.toLowerCase()) {
+      } else if (currentRole === 'user' && t.assignTo.toLowerCase() === 'goblin') {
         if (t.status === 'assigned' || t.status === 'edit') {
           userDiv.innerHTML += baseInfo + `
             <textarea placeholder="ลิงก์งาน" oninput="this.dataset.link=this.value"></textarea>
