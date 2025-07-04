@@ -111,12 +111,16 @@
 const dummyTasks = [];
 let currentUser = "";
 const userCredentials = { "admin": "1234", "luklnwza": "1234" };
-const WEB_APP_URL = "https://script.google.com/macros/s/YOUR_DEPLOYED_SCRIPT_ID/exec";
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwNYhPrxqiy3JI9Vaj2Bs7kcpvuJh7F_EOAIZtPV0BcrAj2NdrsZtq0LB9lPj5Mo5i1Ng/exec";
 
 document.addEventListener("DOMContentLoaded", () => {
+  // กด Enter ที่ช่องรหัสผ่านเพื่อเข้าสู่ระบบ
   document.getElementById("loginPassword").addEventListener("keydown", e => {
-    if (e.key === "Enter") login();
+    if (e.key === "Enter") {
+      login();
+    }
   });
+
   document.getElementById("taskCreatedDate").value = new Date().toLocaleDateString("th-TH", {
     year: "numeric", month: "2-digit", day: "2-digit"
   });
@@ -139,7 +143,10 @@ function loadTasksFromSheet(callback) {
 function login() {
   const username = document.getElementById("loginUsername").value.trim().toLowerCase();
   const password = document.getElementById("loginPassword").value;
-  if (!username || userCredentials[username] !== password) return alert("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
+  if (!username || userCredentials[username] !== password) {
+    alert("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
+    return;
+  }
   currentUser = username;
   document.getElementById("loginPage").classList.add("hidden");
   document.querySelectorAll("#logoutBtn").forEach(btn => btn.classList.remove("hidden"));
@@ -183,7 +190,10 @@ function addTask() {
   const assignTo = document.getElementById("taskAssignTo").value;
   const due = document.getElementById("taskDue").value;
   const brief = document.getElementById("taskBrief").value.trim();
-  if (!title || !assignTo || !due) return alert("กรุณากรอกข้อมูลให้ครบ");
+  if (!title || !assignTo || !due) {
+    alert("กรุณากรอกข้อมูลให้ครบ");
+    return;
+  }
   const newTask = { createdDate, title, assignTo, due, brief, status: "assigned" };
   dummyTasks.push(newTask);
   renderAdminTasks();
@@ -210,7 +220,7 @@ function renderAdminTasks() {
         <h3>${t.title}</h3>
         <p>วันที่สั่ง: ${t.createdDate}</p>
         <p>มอบหมายให้: ${t.assignTo} | กำหนดส่ง: ${t.due}</p>
-        <p>ลิงก์บรีฟ: <a href="${t.brief}" target="_blank">เปิด</a></p>
+        <p>ลิงก์บรีฟ: <a href="${t.brief}" target="_blank" rel="noopener noreferrer">เปิด</a></p>
         <p>สถานะ: <span class="status-${t.status}">${t.status}</span></p>
       </div>
     `;
@@ -229,7 +239,7 @@ function renderUserTasks() {
           <h3>${t.title}</h3>
           <p>วันที่สั่ง: ${t.createdDate}</p>
           <p>กำหนดส่ง: ${t.due}</p>
-          <p>ลิงก์บรีฟ: <a href="${t.brief}" target="_blank">เปิด</a></p>
+          <p>ลิงก์บรีฟ: <a href="${t.brief}" target="_blank" rel="noopener noreferrer">เปิด</a></p>
           <p>สถานะ: <span class="status-${t.status}">${t.status}</span></p>
           ${t.status === "assigned" ? `<button onclick="submitWork('${t.title}')">ส่งงาน</button>` : ""}
         </div>
