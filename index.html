@@ -79,7 +79,7 @@
     <button onclick="login()">เข้าสู่ระบบ</button>
 </div>
 
-<div class="container hidden" id="talnwza">
+<div class="container hidden" id="adminPage">
     <h1>แผงควบคุม Admin</h1>
     <button onclick="showAddTaskForm()">➕ เพิ่มงานใหม่</button>
     <h2>งานทั้งหมด</h2>
@@ -96,7 +96,7 @@
     <button onclick="backToAdmin()">ย้อนกลับ</button>
 </div>
 
-<div class="container hidden" id="luklnwza">
+<div class="container hidden" id="userPage">
     <h1>งานของฉัน</h1>
     <h2>งานที่ต้องทำ</h2>
     <div id="userTasks"></div>
@@ -108,25 +108,19 @@
     const dummyTasks = [];
     let currentUser = "";
 
+    const userCredentials = {
+        "admin": "adminpass",
+        "user1": "1234",
+        "user2": "5678"
+    };
+
     function login() {
         const username = document.getElementById('loginUsername').value.trim();
         const password = document.getElementById('loginPassword').value;
 
         if (!username || userCredentials[username] !== password) {
-        alert('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
-        return;
-        }
-        const dummyTasks = [];
-        let currentUser = "";
-
-            // กำหนดชื่อผู้ใช้และรหัสผ่านแยกกัน
-        const userCredentials = {
-        "admin": "adminpass",  // รหัสของแอดมิน
-        "user1": "1234",       // รหัสของ user คนที่ 1
-        "user2": "5678"        // รหัสของ user คนที่ 2
-        // เพิ่มตามต้องการ
-};
-
+            alert('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
+            return;
         }
 
         currentUser = username;
