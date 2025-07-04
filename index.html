@@ -1,526 +1,322 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบจัดการงาน</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
-        .container { max-width: 900px; margin: auto; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        .card { border: 1px solid #ddd; border-radius: 5px; padding: 15px; margin-bottom: 15px; background-color: #f9f9f9; }
-        h3 { color: #333; }
-        p { margin: 5px 0; }
-        a { color: #007bff; text-decoration: none; }
-        a:hover { text-decoration: underline; }
-        textarea { width: calc(100% - 10px); padding: 5px; margin-top: 5px; margin-bottom: 5px; border: 1px solid #ccc; border-radius: 3px; resize: vertical; }
-        button { padding: 8px 12px; margin-right: 5px; border: none; border-radius: 4px; cursor: pointer; color: white; background-color: #007bff; }
-        button:hover { opacity: 0.9; }
-        button[style*="background:#f44336"] { background-color: #f44336; } /* Red for delete */
-        button[onclick*="updateStatus"][style*="background:#f44336"] { background-color: #f44336; } /* Example: make edit button orange */
-
-        .status-green { color: green; font-weight: bold; }
-        .status-orange { color: orange; font-weight: bold; }
-        .status-yellow { color: rgb(204, 204, 0); font-weight: bold; }
-
-        .role-selector { margin-bottom: 20px; display: flex; align-items: center; gap: 10px;}
-        .role-selector label { font-weight: bold; }
-        .task-sections { display: flex; gap: 20px; flex-wrap: wrap; }
-        .task-section { flex: 1; min-width: 300px; background-color: #eee; padding: 15px; border-radius: 5px; }
-        .task-section h2 { border-bottom: 2px solid #ccc; padding-bottom: 10px; margin-top: 0; }
-
-        /* Style for Add Task Form */
-        .add-task-form { margin-top: 20px; padding: 20px; border: 1px dashed #ccc; border-radius: 5px; background-color: #e9f7ef; }
-        .add-task-form label { display: block; margin-bottom: 5px; font-weight: bold; }
-        .add-task-form input[type="text"],
-        .add-task-form input[type="date"],
-        .add-task-form textarea,
-        .add-task-form select {
-            width: calc(100% - 22px); /* Adjust for padding and border */
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        .add-task-form button { background-color: #28a745; margin-top: 10px; }
-        .add-task-form button:hover { background-color: #218838; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบจัดการงาน</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+        margin: 0;
+        background: #f0f2f5;
+    }
+    .container {
+        max-width: 960px;
+        margin: 20px auto;
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    h1 {
+        text-align: center;
+        color: #333;
+    }
+    .role-selector {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 20px;
+        justify-content: center;
+    }
+    .role-selector select, .add-task-form select, .add-task-form input, .add-task-form textarea {
+        padding: 8px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        width: 100%;
+        max-width: 300px;
+        box-sizing: border-box;
+    }
+    .add-task-form {
+        background: #f9f9f9;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+    .add-task-form label {
+        font-weight: 600;
+        display: block;
+        margin: 10px 0 5px;
+    }
+    .add-task-form button {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+    .add-task-form button:hover {
+        background: #218838;
+    }
+    .task-section {
+        margin-bottom: 30px;
+    }
+    .task-section h2 {
+        border-bottom: 2px solid #ddd;
+        padding-bottom: 8px;
+        margin-bottom: 15px;
+    }
+    .card {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .card h4 {
+        margin: 0 0 10px;
+    }
+    .card p {
+        margin: 4px 0;
+    }
+    .status-green { color: green; font-weight: 600; }
+    .status-orange { color: orange; font-weight: 600; }
+    .status-yellow { color: #999900; font-weight: 600; }
+    button.action-btn {
+        margin: 5px 5px 0 0;
+        padding: 8px 12px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background 0.2s;
+        color: white;
+    }
+    .btn-approve { background: #28a745; }
+    .btn-edit { background: #ff9800; }
+    .btn-delete { background: #f44336; }
+    .btn-submit { background: #007bff; }
+    button.action-btn:hover { opacity: 0.9; }
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>ระบบจัดการงาน</h1>
+<div class="container">
+    <h1>ระบบจัดการงาน</h1>
 
-        <div class="role-selector">
-            <label for="userRole">เลือกบทบาท:</label>
-            <select id="userRole" onchange="changeRole()">
-                <option value="admin">Admin</option>
-                <option value="user">User</option>
-            </select>
-            <label for="currentUserSelect">ผู้ใช้งาน:</label>
-            <select id="currentUserSelect" onchange="changeUser()"></select>
-        </div>
+    <div class="role-selector">
+        <label>บทบาท:</label>
+        <select id="userRole" onchange="changeRole()">
+            <option value="admin">Admin</option>
+            <option value="user">User</option>
+        </select>
 
-        <div id="addTaskForm" class="add-task-form" style="display: none;">
-            <h2>เพิ่มงานใหม่</h2>
-            <label for="taskTitle">ชื่องาน:</label>
-            <input type="text" id="taskTitle" placeholder="เช่น สร้างโลโก้สินค้าใหม่">
-
-            <label for="taskOrderDate">วันที่สั่งงาน:</label>
-            <input type="date" id="taskOrderDate">
-
-            <label for="taskDueDate">กำหนดส่ง:</label>
-            <input type="date" id="taskDueDate">
-
-            <label for="taskBrief">ลิงก์บรีฟ (ถ้ามี):</label>
-            <input type="text" id="taskBrief" placeholder="เช่น https://docs.google.com/document/d/... หรือ URL อื่นๆ">
-
-            <label for="taskAssignTo">มอบหมายให้:</label>
-            <select id="taskAssignTo"></select>
-
-            <label for="taskAdminNote">หมายเหตุแอดมิน (เริ่มต้น):</label>
-            <textarea id="taskAdminNote" placeholder="เช่น กรอบเวลาเบื้องต้น หรือข้อควรระวัง"></textarea>
-
-            <button onclick="addTask()">เพิ่มงาน</button>
-        </div>
-
-        <hr>
-
-        <div class="task-sections">
-            <div id="adminSection" class="task-section" style="display: none;">
-                <h2>งานทั้งหมด (Admin View)</h2>
-                <div id="adminTasks">
-                    </div>
-            </div>
-
-            <div id="userSection" class="task-section" style="display: none;">
-                <h2>งานที่ได้รับมอบหมาย (User View)</h2>
-                <div id="userTasks">
-                    </div>
-            </div>
-
-            <div id="userSubmittedSection" class="task-section" style="display: none;">
-                <h2>งานที่ส่งแล้ว/อนุมัติแล้ว (User View)</h2>
-                <div id="userSubmitted">
-                    </div>
-            </div>
-        </div>
+        <label>ผู้ใช้งาน:</label>
+        <select id="currentUserSelect" onchange="changeUser()"></select>
     </div>
 
-    <script>
-        // *** IMPORTANT: Replace with your deployed Google Apps Script Web App URL ***
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzZtrON27_A_3kqhn4MAr9n6_Egi_uObT8aq3k_Jnywx1lPbO4UhD_0e757dCef8Sohfg/exec";
+    <div id="addTaskForm" class="add-task-form">
+        <h2>เพิ่มงานใหม่</h2>
+        <label>ชื่องาน</label>
+        <input type="text" id="taskTitle">
 
-        let tasks = []; // Global array to store tasks
-        let currentRole = "admin"; // Default role
-        let currentUser = ""; // Default user
+        <label>วันที่สั่งงาน</label>
+        <input type="date" id="taskOrderDate">
 
-        // All possible users fetched from tasks
-        let allUsers = [];
+        <label>กำหนดส่ง</label>
+        <input type="date" id="taskDueDate">
 
-        // Function to fetch tasks from Google Apps Script
-        async function fetchTasks() {
-            try {
-                const response = await fetch(WEB_APP_URL);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                tasks = await response.json();
-                console.log("Fetched tasks:", tasks); // For debugging
-                extractUsers(); // Extract users for the dropdown
-                renderTasks(); // Re-render tasks after fetching
-            } catch (error) {
-                console.error("Error fetching tasks:", error);
-                alert("เกิดข้อผิดพลาดในการดึงข้อมูลงาน: " + error.message);
-            }
-        }
+        <label>ลิงก์บรีฟ</label>
+        <input type="text" id="taskBrief">
 
-        // Function to extract unique users from tasks
-        function extractUsers() {
-            const users = new Set();
-            tasks.forEach(task => {
-                if (task.assignTo) {
-                    users.add(task.assignTo);
-                }
-            });
-            allUsers = Array.from(users).sort(); // Convert to array and sort
-            populateUserDropdown();
-        }
+        <label>มอบหมายให้</label>
+        <select id="taskAssignTo"></select>
 
-        // Function to populate the user dropdown
-        function populateUserDropdown() {
-            const select = document.getElementById("currentUserSelect");
-            select.innerHTML = ''; // Clear existing options
+        <label>หมายเหตุแอดมิน</label>
+        <textarea id="taskAdminNote" rows="3"></textarea>
 
-            // Add an empty option if there are no users yet
-            if (allUsers.length === 0) {
-                const option = document.createElement("option");
-                option.value = "";
-                option.textContent = "ไม่มีผู้ใช้งาน";
-                select.appendChild(option);
-            } else {
-                allUsers.forEach(user => {
-                    const option = document.createElement("option");
-                    option.value = user;
-                    option.textContent = user;
-                    select.appendChild(option);
-                });
-            }
+        <button onclick="addTask()">เพิ่มงาน</button>
+    </div>
 
-            // Set the current user if it's still valid, or default to the first user
-            if (currentUser && allUsers.includes(currentUser)) {
-                select.value = currentUser;
-            } else if (allUsers.length > 0) {
-                currentUser = allUsers[0];
-                select.value = currentUser;
-            } else {
-                currentUser = ""; // No users available
-            }
+    <div id="adminSection" class="task-section">
+        <h2>งานทั้งหมด (Admin View)</h2>
+        <div id="adminTasks"></div>
+    </div>
 
-            // Also populate the assignTo dropdown in the add task form
-            const assignToSelect = document.getElementById("taskAssignTo");
-            assignToSelect.innerHTML = ''; // Clear existing options
-            allUsers.forEach(user => {
-                const option = document.createElement("option");
-                option.value = user;
-                option.textContent = user;
-                assignToSelect.appendChild(option);
-            });
-            // Add an option to add a new user if not in admin role, or always show if admin
-            const newOption = document.createElement("option");
-            newOption.value = "addNewUser";
-            newOption.textContent = "เพิ่มผู้ใช้งานใหม่...";
-            assignToSelect.appendChild(newOption);
+    <div id="userSection" class="task-section">
+        <h2>งานที่ได้รับมอบหมาย</h2>
+        <div id="userTasks"></div>
+    </div>
 
-            assignToSelect.onchange = function() {
-                if (this.value === "addNewUser") {
-                    const newUser = prompt("กรอกชื่อผู้ใช้งานใหม่:");
-                    if (newUser) {
-                        if (!allUsers.includes(newUser)) {
-                            allUsers.push(newUser);
-                            allUsers.sort();
-                            populateUserDropdown(); // Re-populate all dropdowns
-                            this.value = newUser; // Select the new user in assignTo
-                        } else {
-                            alert("ชื่อผู้ใช้งานนี้มีอยู่แล้ว");
-                            this.value = currentUser; // Revert to current user or default
-                        }
-                    } else {
-                        this.value = currentUser; // Revert if cancelled
-                    }
-                }
-            };
+    <div id="userSubmittedSection" class="task-section">
+        <h2>งานที่ส่งแล้ว/อนุมัติแล้ว</h2>
+        <div id="userSubmitted"></div>
+    </div>
+</div>
 
-            updateUIForRole(); // Update UI after user dropdown is set
-        }
+<script>
+const WEB_APP_URL = "ใส่ URL Google Apps Script ที่ถูกต้องของคุณ";
+let tasks = [], currentRole = "admin", currentUser = "";
+let allUsers = [];
 
-        // Function to change the current role (Admin/User)
-        function changeRole() {
-            currentRole = document.getElementById("userRole").value;
-            updateUIForRole();
+function fetchTasks() {
+    fetch(WEB_APP_URL)
+        .then(r => r.json())
+        .then(data => {
+            tasks = data;
+            extractUsers();
             renderTasks();
-        }
+        })
+        .catch(err => alert("โหลดงานไม่สำเร็จ: " + err));
+}
 
-        // Function to change the current logged-in user
-        function changeUser() {
-            currentUser = document.getElementById("currentUserSelect").value;
-            renderTasks();
-        }
-
-        // Function to show/hide sections based on role
-        function updateUIForRole() {
-            const isAdmin = currentRole === "admin";
-            document.getElementById("adminSection").style.display = isAdmin ? "block" : "none";
-            document.getElementById("userSection").style.display = isAdmin ? "none" : "block";
-            document.getElementById("userSubmittedSection").style.display = isAdmin ? "none" : "block";
-            document.getElementById("addTaskForm").style.display = isAdmin ? "block" : "none";
-            document.getElementById("currentUserSelect").disabled = isAdmin; // Disable user selection for admin view
-            document.getElementById("currentUserSelect").parentNode.style.display = isAdmin ? 'none' : 'flex'; // Hide user selection for admin
-        }
-
-        // Function to format date to "วัน/เดือน/ปี" Thai format
-        function formatDate(dateStr) {
-            if (!dateStr) return "-";
-            // Ensure dateStr is treated as UTC to avoid timezone issues when parsing simple dates
-            // If dateStr is already a full ISO string, new Date() handles it well.
-            // If it's just "YYYY-MM-DD", treat it carefully.
-            const d = new Date(dateStr + "T00:00:00"); // Append T00:00:00 to treat as start of day UTC
-            if (isNaN(d.getTime())) {
-                console.warn("Invalid date string:", dateStr);
-                return dateStr; // Fallback if invalid date
-            }
-            return d.toLocaleDateString("th-TH", {
-                year: 'numeric',
-                month: 'numeric',
-                day: 'numeric'
-            });
-        }
-
-        // Function to format date-time to "วัน/เดือน/ปี ชั่วโมง:นาที:วินาที" Thai format
-        function formatDateTime(dateStr) {
-            if (!dateStr) return "-";
-            const d = new Date(dateStr);
-            if (isNaN(d.getTime())) {
-                console.warn("Invalid date-time string:", dateStr);
-                return dateStr; // Fallback if invalid date
-            }
-            return d.toLocaleDateString("th-TH", {
-                year: 'numeric',
-                month: 'numeric',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            });
-        }
-
-
-        // --- Core Rendering Function ---
-        function renderTasks() {
-            const adminDiv = document.getElementById("adminTasks");
-            const userDiv = document.getElementById("userTasks");
-            const userSub = document.getElementById("userSubmitted");
-            adminDiv.innerHTML = "";
-            userDiv.innerHTML = "";
-            userSub.innerHTML = "";
-
-            if (tasks.length === 0) {
-                if (currentRole === "admin") {
-                    adminDiv.innerHTML = "<p>ไม่มีงานในระบบ.</p>";
-                } else {
-                    userDiv.innerHTML = "<p>ไม่มีงานที่ได้รับมอบหมายในขณะนี้.</p>";
-                    userSub.innerHTML = "<p>ไม่มีงานที่ส่งแล้วหรืออนุมัติแล้ว.</p>";
-                }
-                return;
-            }
-
-
-            tasks.forEach((t) => {
-                // แปลงวันที่ก่อนแสดงผล
-                const orderDateFormatted = formatDate(t.orderDate);
-                const dueFormatted = formatDate(t.due);
-                // ใช้ formatDateTime สำหรับ submitDate เพราะอาจมีเวลาด้วย
-                const submitDateFormatted = formatDateTime(t.submitDate);
-
-                // กำหนดคลาสสถานะสี
-                const statusClass =
-                    t.status === "approved"
-                        ? "status-green"
-                        : t.status === "edit"
-                        ? "status-orange"
-                        : "status-yellow"; // 'assigned' or 'submitted'
-
-                const baseInfo = `
-                    <div class="card" id="task-${t.id}">
-                        <h4>${t.title}</h4>
-                        <p>👤 ผู้รับ: <strong>${t.assignTo}</strong> | 📅 สั่งงาน: ${orderDateFormatted} | 📅 กำหนดส่ง: ${dueFormatted}</p>
-                        <p>🔗 <a href="${t.brief || "#"}" target="_blank">บรีฟ</a></p>
-                        <p>${t.adminNote ? "📌 หมายเหตุแอดมิน (เริ่มต้น): " + t.adminNote : ""}</p>
-                        <p class="${statusClass}">สถานะ: <strong>${t.status}</strong></p>
-                `;
-
-                if (currentRole === "admin") {
-                    adminDiv.innerHTML +=
-                        baseInfo +
-                        `
-                        <p>🛠 ลิงก์งานที่ส่ง: <a href="${t.workLink || "#"}" target="_blank">${t.workLink || "-"}</a></p>
-                        <p>💬 หมายเหตุจากผู้ใช้: ${t.note || "-"}</p>
-                        <p>📅 ส่งงานเมื่อ: ${submitDateFormatted}</p>
-                        <textarea id="adminComment-${t.id}" placeholder="คอมเมนต์" rows="3">${t.comment || ''}</textarea>
-                        <button onclick="updateStatus(${t.id}, 'approved', document.getElementById('adminComment-${t.id}').value)">✔ ผ่าน</button>
-                        <button onclick="updateStatus(${t.id}, 'edit', document.getElementById('adminComment-${t.id}').value)">✏ แก้ไข</button>
-                        <button style="background:#f44336;" onclick="deleteTask(${t.id})">🗑 ลบ</button>
-                    </div>
-                    `;
-                } else if (
-                    currentRole === "user" &&
-                    t.assignTo.toLowerCase() === currentUser.toLowerCase()
-                ) {
-                    if (t.status === "assigned" || t.status === "edit") {
-                        userDiv.innerHTML +=
-                            baseInfo +
-                            `
-                            <textarea id="userWorkLink-${t.id}" placeholder="ลิงก์งานของคุณ" rows="2">${t.workLink || ''}</textarea>
-                            <textarea id="userNote-${t.id}" placeholder="หมายเหตุเพิ่มเติมเกี่ยวกับงานที่ส่ง" rows="3">${t.note || ''}</textarea>
-                            <button onclick="submitWork(${t.id}, document.getElementById('userWorkLink-${t.id}').value, document.getElementById('userNote-${t.id}').value)">📤 ส่งงาน</button>
-                        </div>
-                        `;
-                    } else if (t.status === "submitted" || t.status === "approved") {
-                        userSub.innerHTML +=
-                            baseInfo +
-                            `
-                            <p>🛠 ลิงก์งานที่ส่ง: <a href="${t.workLink || "#"}" target="_blank">${t.workLink || "-"}</a></p>
-                            <p>💬 หมายเหตุจากผู้ใช้: ${t.note || "-"}</p>
-                            <p>🗒 คอมเมนต์แอดมิน: ${t.comment || "-"}</p>
-                            <p>📅 ส่งคืนเมื่อ: ${submitDateFormatted}</p>
-                        </div>
-                        `;
-                    }
-                }
-            });
-        }
-
-        // --- CRUD Operations (Functions calling Apps Script) ---
-
-        // Add a new task (Admin only)
-        async function addTask() {
-            const title = document.getElementById("taskTitle").value;
-            const orderDate = document.getElementById("taskOrderDate").value;
-            const due = document.getElementById("taskDueDate").value;
-            const brief = document.getElementById("taskBrief").value;
-            const assignTo = document.getElementById("taskAssignTo").value;
-            const adminNote = document.getElementById("taskAdminNote").value;
-
-            if (!title || !orderDate || !due || !assignTo || assignTo === "addNewUser") {
-                alert("โปรดกรอกข้อมูลให้ครบถ้วน: ชื่องาน, วันที่สั่ง, กำหนดส่ง, และมอบหมายให้");
-                return;
-            }
-
-            try {
-                const response = await fetch(WEB_APP_URL, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        action: "add",
-                        title,
-                        orderDate,
-                        due,
-                        brief,
-                        assignTo,
-                        adminNote
-                    }),
-                });
-                const result = await response.text();
-                if (result === "success") {
-                    alert("เพิ่มงานสำเร็จ!");
-                    // Clear form fields
-                    document.getElementById("taskTitle").value = "";
-                    document.getElementById("taskOrderDate").value = "";
-                    document.getElementById("taskDueDate").value = "";
-                    document.getElementById("taskBrief").value = "";
-                    document.getElementById("taskAdminNote").value = "";
-                    fetchTasks(); // Re-fetch tasks to update the UI
-                } else {
-                    alert("เกิดข้อผิดพลาดในการเพิ่มงาน: " + result);
-                }
-            } catch (error) {
-                console.error("Error adding task:", error);
-                alert("เกิดข้อผิดพลาดในการเชื่อมต่อ: " + error.message);
+function extractUsers() {
+    const users = new Set(tasks.map(t => t.assignTo).filter(Boolean));
+    allUsers = Array.from(users).sort();
+    const userSel = document.getElementById("currentUserSelect");
+    const assignSel = document.getElementById("taskAssignTo");
+    userSel.innerHTML = assignSel.innerHTML = "";
+    allUsers.forEach(u => {
+        userSel.innerHTML += `<option value="${u}">${u}</option>`;
+        assignSel.innerHTML += `<option value="${u}">${u}</option>`;
+    });
+    assignSel.innerHTML += `<option value="addNewUser">เพิ่มผู้ใช้งานใหม่...</option>`;
+    if (currentUser && allUsers.includes(currentUser)) userSel.value = currentUser;
+    else currentUser = userSel.value = allUsers[0] || "";
+    assignSel.onchange = () => {
+        if (assignSel.value === "addNewUser") {
+            const newUser = prompt("กรอกชื่อผู้ใช้ใหม่");
+            if (newUser && !allUsers.includes(newUser)) {
+                allUsers.push(newUser);
+                allUsers.sort();
+                extractUsers();
+                assignSel.value = newUser;
             }
         }
+    }
+    updateUIForRole();
+}
 
-        // Submit work (User only)
-        async function submitWork(id, workLink, note) {
-            const task = tasks.find(t => t.id === id);
-            if (!task) {
-                console.error("Task not found for ID:", id);
-                return;
-            }
+function changeRole() {
+    currentRole = document.getElementById("userRole").value;
+    updateUIForRole();
+    renderTasks();
+}
 
-            if (!workLink) {
-                alert("กรุณาใส่ลิงก์งานก่อนส่ง");
-                return;
-            }
+function changeUser() {
+    currentUser = document.getElementById("currentUserSelect").value;
+    renderTasks();
+}
 
-            try {
-                const response = await fetch(WEB_APP_URL, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        action: "submit",
-                        id: id,
-                        workLink: workLink,
-                        note: note,
-                        date: new Date().toISOString() // Send current date/time in ISO format
-                    }),
-                });
-                const result = await response.text();
-                if (result === "submitted") {
-                    alert("ส่งงานสำเร็จ!");
-                    fetchTasks(); // Re-fetch tasks to update the UI
-                } else {
-                    alert("เกิดข้อผิดพลาดในการส่งงาน: " + result);
-                }
-            } catch (error) {
-                console.error("Error submitting work:", error);
-                alert("เกิดข้อผิดพลาดในการเชื่อมต่อ: " + error.message);
-            }
-        }
+function updateUIForRole() {
+    document.getElementById("adminSection").style.display = currentRole === "admin" ? "block" : "none";
+    document.getElementById("addTaskForm").style.display = currentRole === "admin" ? "block" : "none";
+    document.getElementById("userSection").style.display = currentRole === "user" ? "block" : "none";
+    document.getElementById("userSubmittedSection").style.display = currentRole === "user" ? "block" : "none";
+    document.getElementById("currentUserSelect").disabled = currentRole === "admin";
+}
 
-        // Update status (Admin only)
-        async function updateStatus(id, newStatus, comment) {
-            const task = tasks.find(t => t.id === id);
-            if (!task) {
-                console.error("Task not found for ID:", id);
-                return;
-            }
+function renderTasks() {
+    const adminDiv = document.getElementById("adminTasks");
+    const userDiv = document.getElementById("userTasks");
+    const userSub = document.getElementById("userSubmitted");
+    adminDiv.innerHTML = userDiv.innerHTML = userSub.innerHTML = "";
+    tasks.forEach(t => {
+        const card = `<div class="card">
+            <h4>${t.title}</h4>
+            <p>ผู้รับ: ${t.assignTo} | สั่ง: ${t.orderDate} | ส่ง: ${t.due}</p>
+            <p>บรีฟ: <a href="${t.brief}" target="_blank">${t.brief || "-"}</a></p>
+            <p class="${t.status === "approved" ? "status-green" : t.status === "edit" ? "status-orange" : "status-yellow"}">สถานะ: ${t.status}</p>`;
 
-            try {
-                const response = await fetch(WEB_APP_URL, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        action: "updateStatus",
-                        id: id,
-                        status: newStatus,
-                        comment: comment // Send admin's comment
-                    }),
-                });
-                const result = await response.text();
-                if (result === "status updated") {
-                    alert("อัปเดตสถานะงานสำเร็จ!");
-                    fetchTasks(); // Re-fetch tasks to update the UI
-                } else {
-                    alert("เกิดข้อผิดพลาดในการอัปเดตสถานะ: " + result);
-                }
-            } catch (error) {
-                console.error("Error updating status:", error);
-                alert("เกิดข้อผิดพลาดในการเชื่อมต่อ: " + error.message);
+        if (currentRole === "admin") {
+            adminDiv.innerHTML += `${card}
+                <textarea id="adminComment-${t.id}" placeholder="คอมเมนต์">${t.comment || ""}</textarea>
+                <button class="action-btn btn-approve" onclick="updateStatus(${t.id},'approved')">✔ ผ่าน</button>
+                <button class="action-btn btn-edit" onclick="updateStatus(${t.id},'edit')">✏ แก้ไข</button>
+                <button class="action-btn btn-delete" onclick="deleteTask(${t.id})">🗑 ลบ</button>
+            </div>`;
+        } else if (currentRole === "user" && t.assignTo === currentUser) {
+            if (t.status === "assigned" || t.status === "edit") {
+                userDiv.innerHTML += `${card}
+                    <textarea id="userWorkLink-${t.id}" placeholder="ลิงก์งาน">${t.workLink || ""}</textarea>
+                    <textarea id="userNote-${t.id}" placeholder="หมายเหตุ">${t.note || ""}</textarea>
+                    <button class="action-btn btn-submit" onclick="submitWork(${t.id})">📤 ส่งงาน</button>
+                </div>`;
+            } else {
+                userSub.innerHTML += `${card}
+                    <p>ลิงก์ที่ส่ง: <a href="${t.workLink}" target="_blank">${t.workLink || "-"}</a></p>
+                    <p>หมายเหตุ: ${t.note || "-"}</p>
+                </div>`;
             }
         }
+    });
+}
 
-        // Delete task (Admin only)
-        async function deleteTask(id) {
-            if (!confirm("คุณต้องการลบงานนี้จริงหรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้")) {
-                return;
-            }
-            try {
-                const response = await fetch(WEB_APP_URL, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        action: "delete",
-                        id: id,
-                    }),
-                });
-                const result = await response.text();
-                if (result === "deleted") {
-                    alert("ลบงานสำเร็จ!");
-                    fetchTasks(); // Re-fetch tasks to update the UI
-                } else {
-                    alert("เกิดข้อผิดพลาดในการลบงาน: " + result);
-                }
-            } catch (error) {
-                console.error("Error deleting task:", error);
-                alert("เกิดข้อผิดพลาดในการเชื่อมต่อ: " + error.message);
-            }
-        }
+function addTask() {
+    const d = (id) => document.getElementById(id).value;
+    if (!d("taskTitle") || !d("taskOrderDate") || !d("taskDueDate") || !d("taskAssignTo")) return alert("กรอกข้อมูลให้ครบ");
+    fetch(WEB_APP_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            action: "add",
+            title: d("taskTitle"),
+            orderDate: d("taskOrderDate"),
+            due: d("taskDueDate"),
+            brief: d("taskBrief"),
+            assignTo: d("taskAssignTo"),
+            adminNote: d("taskAdminNote")
+        })
+    }).then(r => r.text()).then(res => {
+        if (res === "success") {
+            alert("เพิ่มงานสำเร็จ");
+            fetchTasks();
+        } else alert("ผิดพลาด: " + res);
+    });
+}
 
-        // Initial setup when the page loads
-        document.addEventListener("DOMContentLoaded", () => {
-            fetchTasks(); // Fetch tasks first
-            // Set initial role and user based on dropdowns after they are populated
-            document.getElementById("userRole").value = currentRole;
-            // The populateUserDropdown will set currentUser and the select value
-            // and then call updateUIForRole()
-        });
+function submitWork(id) {
+    const workLink = document.getElementById(`userWorkLink-${id}`).value;
+    const note = document.getElementById(`userNote-${id}`).value;
+    if (!workLink) return alert("กรุณาใส่ลิงก์งาน");
+    fetch(WEB_APP_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "submit", id, workLink, note, date: new Date().toISOString() })
+    }).then(r => r.text()).then(res => {
+        if (res === "submitted") fetchTasks();
+        else alert("ผิดพลาด: " + res);
+    });
+}
 
-    </script>
+function updateStatus(id, status) {
+    const comment = document.getElementById(`adminComment-${id}`).value;
+    fetch(WEB_APP_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "updateStatus", id, status, comment })
+    }).then(r => r.text()).then(res => {
+        if (res === "status updated") fetchTasks();
+        else alert("ผิดพลาด: " + res);
+    });
+}
+
+function deleteTask(id) {
+    if (!confirm("ลบงานนี้จริงหรือไม่?")) return;
+    fetch(WEB_APP_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete", id })
+    }).then(r => r.text()).then(res => {
+        if (res === "deleted") fetchTasks();
+        else alert("ผิดพลาด: " + res);
+    });
+}
+
+document.addEventListener("DOMContentLoaded", fetchTasks);
+</script>
 </body>
 </html>
