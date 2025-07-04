@@ -1,4 +1,119 @@
-<!-- ปรับใน <script> ด้านล่าง -->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจัดการงาน</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter&display=swap');
+
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: #2b2d31;
+            color: #f2f3f5;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            background-color: #313338;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+        }
+
+        h1, h2, h3 {
+            color: #f2f3f5;
+            border-bottom: 1px solid #424549;
+            padding-bottom: 5px;
+        }
+
+        input, select, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+            border: none;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        input, select, textarea {
+            background-color: #232428;
+            color: #f2f3f5;
+        }
+
+        button {
+            background-color: #5865f2;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #4752c4;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .task-card {
+            background-color: #232428;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 5px;
+        }
+
+        .status-approved { color: #23a55a; }
+        .status-edit { color: #f0b232; }
+        .status-assigned, .status-submitted { color: #faa81a; }
+
+        #logoutBtn {
+            background-color: #f04747;
+            float: right;
+            width: auto;
+            padding: 8px 15px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="loginPage">
+    <h1>เข้าสู่ระบบ</h1>
+    <input type="text" id="loginUsername" placeholder="ชื่อผู้ใช้">
+    <input type="password" id="loginPassword" placeholder="รหัสผ่าน">
+    <button onclick="login()">เข้าสู่ระบบ</button>
+</div>
+
+<div class="container hidden" id="adminPage">
+    <button id="logoutBtn" class="hidden" onclick="logout()">ออกจากระบบ</button>
+    <h1>แผงควบคุม Admin</h1>
+    <button onclick="showAddTaskForm()">➕ เพิ่มงานใหม่</button>
+    <h2>งานทั้งหมด</h2>
+    <div id="adminTasks"></div>
+</div>
+
+<div class="container hidden" id="addTaskPage">
+    <h1>เพิ่มงานใหม่</h1>
+    <input type="text" id="taskTitle" placeholder="ชื่องาน">
+    <input type="text" id="taskAssignTo" placeholder="มอบหมายให้ (ชื่อผู้ใช้)">
+    <input type="date" id="taskDue">
+    <textarea id="taskBrief" placeholder="รายละเอียด/บรีฟ"></textarea>
+    <button onclick="addTask()">บันทึกงาน</button>
+    <button onclick="backToAdmin()">ย้อนกลับ</button>
+</div>
+
+<div class="container hidden" id="userPage">
+    <button id="logoutBtn" class="hidden" onclick="logout()">ออกจากระบบ</button>
+    <h1>งานของฉัน</h1>
+    <h2>งานที่ต้องทำ</h2>
+    <div id="userTasks"></div>
+    <h2>งานที่ส่งแล้ว</h2>
+    <div id="userSubmitted"></div>
+</div>
+
 <script>
     const dummyTasks = [];
     let currentUser = "";
@@ -9,7 +124,7 @@
     };
 
     document.addEventListener('DOMContentLoaded', () => {
-        // กด Enter เพื่อ Login
+        // Enter เพื่อ Login
         document.getElementById('loginPassword').addEventListener('keydown', function (e) {
             if (e.key === 'Enter') {
                 login();
@@ -28,7 +143,7 @@
 
         currentUser = username;
         document.getElementById('loginPage').classList.add('hidden');
-        document.getElementById('logoutBtn').classList.remove('hidden');
+        document.querySelectorAll('#logoutBtn').forEach(btn => btn.classList.remove('hidden'));
 
         if (username === 'admin') {
             document.getElementById('adminPage').classList.remove('hidden');
@@ -41,14 +156,12 @@
 
     function logout() {
         currentUser = "";
-        document.getElementById('logoutBtn').classList.add('hidden');
+        document.querySelectorAll('#logoutBtn').forEach(btn => btn.classList.add('hidden'));
 
-        // ซ่อนทุกหน้า
         ['adminPage', 'userPage', 'addTaskPage'].forEach(id => {
             document.getElementById(id).classList.add('hidden');
         });
 
-        // แสดงหน้า Login
         document.getElementById('loginPage').classList.remove('hidden');
         document.getElementById('loginUsername').value = '';
         document.getElementById('loginPassword').value = '';
@@ -79,8 +192,8 @@
         const newTask = { title, assignTo, due, brief, status: 'assigned' };
         dummyTasks.push(newTask);
 
-        // 📌 ส่งข้อมูลไป Google Sheet (เชื่อมผ่าน Apps Script Web App)
-        fetch("https://script.google.com/macros/s/<<YOUR_SCRIPT_ID>>/exec", {
+        // 👇 ใส่ Web App URL ของคุณที่นี่
+        fetch("https://docs.google.com/spreadsheets/d/1qoZXiNDgsHugGDjHKnGGKRfzEFJQemiEydPRrL9DsSk/edit?gid=0#gid=0", {
             method: "POST",
             mode: "no-cors",
             headers: { "Content-Type": "application/json" },
@@ -88,6 +201,7 @@
         });
 
         alert('เพิ่มงานสำเร็จ');
+
         document.getElementById('taskTitle').value = '';
         document.getElementById('taskAssignTo').value = '';
         document.getElementById('taskDue').value = '';
@@ -99,7 +213,7 @@
     function renderAdminTasks() {
         const container = document.getElementById('adminTasks');
         container.innerHTML = '';
-        dummyTasks.forEach((t, i) => {
+        dummyTasks.forEach(t => {
             container.innerHTML += `
                 <div class="task-card">
                     <h3>${t.title}</h3>
@@ -144,3 +258,6 @@
         renderUserTasks();
     }
 </script>
+
+</body>
+</html>
