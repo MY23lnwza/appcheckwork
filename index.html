@@ -1,322 +1,228 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ระบบจัดการงาน</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-<style>
-    body {
-        font-family: 'Inter', sans-serif;
-        margin: 0;
-        background: #f0f2f5;
-    }
-    .container {
-        max-width: 960px;
-        margin: 20px auto;
-        background: white;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    h1 {
-        text-align: center;
-        color: #333;
-    }
-    .role-selector {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        align-items: center;
-        margin-bottom: 20px;
-        justify-content: center;
-    }
-    .role-selector select, .add-task-form select, .add-task-form input, .add-task-form textarea {
-        padding: 8px;
-        border-radius: 6px;
-        border: 1px solid #ccc;
-        width: 100%;
-        max-width: 300px;
-        box-sizing: border-box;
-    }
-    .add-task-form {
-        background: #f9f9f9;
-        padding: 20px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-    }
-    .add-task-form label {
-        font-weight: 600;
-        display: block;
-        margin: 10px 0 5px;
-    }
-    .add-task-form button {
-        background: #28a745;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: background 0.3s;
-    }
-    .add-task-form button:hover {
-        background: #218838;
-    }
-    .task-section {
-        margin-bottom: 30px;
-    }
-    .task-section h2 {
-        border-bottom: 2px solid #ddd;
-        padding-bottom: 8px;
-        margin-bottom: 15px;
-    }
-    .card {
-        background: #fff;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        padding: 15px;
-        margin-bottom: 15px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-    .card h4 {
-        margin: 0 0 10px;
-    }
-    .card p {
-        margin: 4px 0;
-    }
-    .status-green { color: green; font-weight: 600; }
-    .status-orange { color: orange; font-weight: 600; }
-    .status-yellow { color: #999900; font-weight: 600; }
-    button.action-btn {
-        margin: 5px 5px 0 0;
-        padding: 8px 12px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background 0.2s;
-        color: white;
-    }
-    .btn-approve { background: #28a745; }
-    .btn-edit { background: #ff9800; }
-    .btn-delete { background: #f44336; }
-    .btn-submit { background: #007bff; }
-    button.action-btn:hover { opacity: 0.9; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจัดการงาน</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter&display=swap');
+
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: #2b2d31;
+            color: #f2f3f5;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            background-color: #313338;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.5);
+        }
+
+        h1, h2, h3 {
+            color: #f2f3f5;
+            border-bottom: 1px solid #424549;
+            padding-bottom: 5px;
+        }
+
+        input, select, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+            border: none;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        input, select, textarea {
+            background-color: #232428;
+            color: #f2f3f5;
+        }
+
+        button {
+            background-color: #5865f2;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #4752c4;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .task-card {
+            background-color: #232428;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 5px;
+        }
+
+        .status-approved { color: #23a55a; }
+        .status-edit { color: #f0b232; }
+        .status-assigned, .status-submitted { color: #faa81a; }
+    </style>
 </head>
 <body>
-<div class="container">
-    <h1>ระบบจัดการงาน</h1>
 
-    <div class="role-selector">
-        <label>บทบาท:</label>
-        <select id="userRole" onchange="changeRole()">
-            <option value="admin">Admin</option>
-            <option value="user">User</option>
-        </select>
+<div class="container" id="loginPage">
+    <h1>เข้าสู่ระบบ</h1>
+    <input type="text" id="loginUsername" placeholder="ชื่อผู้ใช้">
+    <input type="password" id="loginPassword" placeholder="รหัสผ่าน">
+    <button onclick="login()">เข้าสู่ระบบ</button>
+</div>
 
-        <label>ผู้ใช้งาน:</label>
-        <select id="currentUserSelect" onchange="changeUser()"></select>
-    </div>
+<div class="container hidden" id="talnwza">
+    <h1>แผงควบคุม Admin</h1>
+    <button onclick="showAddTaskForm()">➕ เพิ่มงานใหม่</button>
+    <h2>งานทั้งหมด</h2>
+    <div id="adminTasks"></div>
+</div>
 
-    <div id="addTaskForm" class="add-task-form">
-        <h2>เพิ่มงานใหม่</h2>
-        <label>ชื่องาน</label>
-        <input type="text" id="taskTitle">
+<div class="container hidden" id="addTaskPage">
+    <h1>เพิ่มงานใหม่</h1>
+    <input type="text" id="taskTitle" placeholder="ชื่องาน">
+    <input type="text" id="taskAssignTo" placeholder="มอบหมายให้ (ชื่อผู้ใช้)">
+    <input type="date" id="taskDue">
+    <textarea id="taskBrief" placeholder="รายละเอียด/บรีฟ"></textarea>
+    <button onclick="addTask()">บันทึกงาน</button>
+    <button onclick="backToAdmin()">ย้อนกลับ</button>
+</div>
 
-        <label>วันที่สั่งงาน</label>
-        <input type="date" id="taskOrderDate">
-
-        <label>กำหนดส่ง</label>
-        <input type="date" id="taskDueDate">
-
-        <label>ลิงก์บรีฟ</label>
-        <input type="text" id="taskBrief">
-
-        <label>มอบหมายให้</label>
-        <select id="taskAssignTo"></select>
-
-        <label>หมายเหตุแอดมิน</label>
-        <textarea id="taskAdminNote" rows="3"></textarea>
-
-        <button onclick="addTask()">เพิ่มงาน</button>
-    </div>
-
-    <div id="adminSection" class="task-section">
-        <h2>งานทั้งหมด (Admin View)</h2>
-        <div id="adminTasks"></div>
-    </div>
-
-    <div id="userSection" class="task-section">
-        <h2>งานที่ได้รับมอบหมาย</h2>
-        <div id="userTasks"></div>
-    </div>
-
-    <div id="userSubmittedSection" class="task-section">
-        <h2>งานที่ส่งแล้ว/อนุมัติแล้ว</h2>
-        <div id="userSubmitted"></div>
-    </div>
+<div class="container hidden" id="luklnwza">
+    <h1>งานของฉัน</h1>
+    <h2>งานที่ต้องทำ</h2>
+    <div id="userTasks"></div>
+    <h2>งานที่ส่งแล้ว</h2>
+    <div id="userSubmitted"></div>
 </div>
 
 <script>
-const WEB_APP_URL = "ใส่ URL Google Apps Script ที่ถูกต้องของคุณ";
-let tasks = [], currentRole = "admin", currentUser = "";
-let allUsers = [];
+    const dummyTasks = [];
+    let currentUser = "";
 
-function fetchTasks() {
-    fetch(WEB_APP_URL)
-        .then(r => r.json())
-        .then(data => {
-            tasks = data;
-            extractUsers();
-            renderTasks();
-        })
-        .catch(err => alert("โหลดงานไม่สำเร็จ: " + err));
-}
+    function login() {
+        const username = document.getElementById('loginUsername').value.trim();
+        const password = document.getElementById('loginPassword').value;
 
-function extractUsers() {
-    const users = new Set(tasks.map(t => t.assignTo).filter(Boolean));
-    allUsers = Array.from(users).sort();
-    const userSel = document.getElementById("currentUserSelect");
-    const assignSel = document.getElementById("taskAssignTo");
-    userSel.innerHTML = assignSel.innerHTML = "";
-    allUsers.forEach(u => {
-        userSel.innerHTML += `<option value="${u}">${u}</option>`;
-        assignSel.innerHTML += `<option value="${u}">${u}</option>`;
-    });
-    assignSel.innerHTML += `<option value="addNewUser">เพิ่มผู้ใช้งานใหม่...</option>`;
-    if (currentUser && allUsers.includes(currentUser)) userSel.value = currentUser;
-    else currentUser = userSel.value = allUsers[0] || "";
-    assignSel.onchange = () => {
-        if (assignSel.value === "addNewUser") {
-            const newUser = prompt("กรอกชื่อผู้ใช้ใหม่");
-            if (newUser && !allUsers.includes(newUser)) {
-                allUsers.push(newUser);
-                allUsers.sort();
-                extractUsers();
-                assignSel.value = newUser;
-            }
+        if (!username || userCredentials[username] !== password) {
+        alert('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
+        return;
+        }
+        const dummyTasks = [];
+        let currentUser = "";
+
+            // กำหนดชื่อผู้ใช้และรหัสผ่านแยกกัน
+        const userCredentials = {
+        "admin": "adminpass",  // รหัสของแอดมิน
+        "user1": "1234",       // รหัสของ user คนที่ 1
+        "user2": "5678"        // รหัสของ user คนที่ 2
+        // เพิ่มตามต้องการ
+};
+
+        }
+
+        currentUser = username;
+
+        if (username.toLowerCase() === 'admin') {
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('adminPage').classList.remove('hidden');
+            renderAdminTasks();
+        } else {
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('userPage').classList.remove('hidden');
+            renderUserTasks();
         }
     }
-    updateUIForRole();
-}
 
-function changeRole() {
-    currentRole = document.getElementById("userRole").value;
-    updateUIForRole();
-    renderTasks();
-}
+    function showAddTaskForm() {
+        document.getElementById('adminPage').classList.add('hidden');
+        document.getElementById('addTaskPage').classList.remove('hidden');
+    }
 
-function changeUser() {
-    currentUser = document.getElementById("currentUserSelect").value;
-    renderTasks();
-}
+    function backToAdmin() {
+        document.getElementById('addTaskPage').classList.add('hidden');
+        document.getElementById('adminPage').classList.remove('hidden');
+        renderAdminTasks();
+    }
 
-function updateUIForRole() {
-    document.getElementById("adminSection").style.display = currentRole === "admin" ? "block" : "none";
-    document.getElementById("addTaskForm").style.display = currentRole === "admin" ? "block" : "none";
-    document.getElementById("userSection").style.display = currentRole === "user" ? "block" : "none";
-    document.getElementById("userSubmittedSection").style.display = currentRole === "user" ? "block" : "none";
-    document.getElementById("currentUserSelect").disabled = currentRole === "admin";
-}
+    function addTask() {
+        const title = document.getElementById('taskTitle').value;
+        const assignTo = document.getElementById('taskAssignTo').value;
+        const due = document.getElementById('taskDue').value;
+        const brief = document.getElementById('taskBrief').value;
 
-function renderTasks() {
-    const adminDiv = document.getElementById("adminTasks");
-    const userDiv = document.getElementById("userTasks");
-    const userSub = document.getElementById("userSubmitted");
-    adminDiv.innerHTML = userDiv.innerHTML = userSub.innerHTML = "";
-    tasks.forEach(t => {
-        const card = `<div class="card">
-            <h4>${t.title}</h4>
-            <p>ผู้รับ: ${t.assignTo} | สั่ง: ${t.orderDate} | ส่ง: ${t.due}</p>
-            <p>บรีฟ: <a href="${t.brief}" target="_blank">${t.brief || "-"}</a></p>
-            <p class="${t.status === "approved" ? "status-green" : t.status === "edit" ? "status-orange" : "status-yellow"}">สถานะ: ${t.status}</p>`;
-
-        if (currentRole === "admin") {
-            adminDiv.innerHTML += `${card}
-                <textarea id="adminComment-${t.id}" placeholder="คอมเมนต์">${t.comment || ""}</textarea>
-                <button class="action-btn btn-approve" onclick="updateStatus(${t.id},'approved')">✔ ผ่าน</button>
-                <button class="action-btn btn-edit" onclick="updateStatus(${t.id},'edit')">✏ แก้ไข</button>
-                <button class="action-btn btn-delete" onclick="deleteTask(${t.id})">🗑 ลบ</button>
-            </div>`;
-        } else if (currentRole === "user" && t.assignTo === currentUser) {
-            if (t.status === "assigned" || t.status === "edit") {
-                userDiv.innerHTML += `${card}
-                    <textarea id="userWorkLink-${t.id}" placeholder="ลิงก์งาน">${t.workLink || ""}</textarea>
-                    <textarea id="userNote-${t.id}" placeholder="หมายเหตุ">${t.note || ""}</textarea>
-                    <button class="action-btn btn-submit" onclick="submitWork(${t.id})">📤 ส่งงาน</button>
-                </div>`;
-            } else {
-                userSub.innerHTML += `${card}
-                    <p>ลิงก์ที่ส่ง: <a href="${t.workLink}" target="_blank">${t.workLink || "-"}</a></p>
-                    <p>หมายเหตุ: ${t.note || "-"}</p>
-                </div>`;
-            }
+        if (!title || !assignTo || !due) {
+            alert('กรุณากรอกข้อมูลให้ครบ');
+            return;
         }
-    });
-}
 
-function addTask() {
-    const d = (id) => document.getElementById(id).value;
-    if (!d("taskTitle") || !d("taskOrderDate") || !d("taskDueDate") || !d("taskAssignTo")) return alert("กรอกข้อมูลให้ครบ");
-    fetch(WEB_APP_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            action: "add",
-            title: d("taskTitle"),
-            orderDate: d("taskOrderDate"),
-            due: d("taskDueDate"),
-            brief: d("taskBrief"),
-            assignTo: d("taskAssignTo"),
-            adminNote: d("taskAdminNote")
-        })
-    }).then(r => r.text()).then(res => {
-        if (res === "success") {
-            alert("เพิ่มงานสำเร็จ");
-            fetchTasks();
-        } else alert("ผิดพลาด: " + res);
-    });
-}
+        dummyTasks.push({ title, assignTo, due, brief, status: 'assigned' });
+        alert('เพิ่มงานสำเร็จ');
 
-function submitWork(id) {
-    const workLink = document.getElementById(`userWorkLink-${id}`).value;
-    const note = document.getElementById(`userNote-${id}`).value;
-    if (!workLink) return alert("กรุณาใส่ลิงก์งาน");
-    fetch(WEB_APP_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "submit", id, workLink, note, date: new Date().toISOString() })
-    }).then(r => r.text()).then(res => {
-        if (res === "submitted") fetchTasks();
-        else alert("ผิดพลาด: " + res);
-    });
-}
+        document.getElementById('taskTitle').value = '';
+        document.getElementById('taskAssignTo').value = '';
+        document.getElementById('taskDue').value = '';
+        document.getElementById('taskBrief').value = '';
 
-function updateStatus(id, status) {
-    const comment = document.getElementById(`adminComment-${id}`).value;
-    fetch(WEB_APP_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "updateStatus", id, status, comment })
-    }).then(r => r.text()).then(res => {
-        if (res === "status updated") fetchTasks();
-        else alert("ผิดพลาด: " + res);
-    });
-}
+        backToAdmin();
+    }
 
-function deleteTask(id) {
-    if (!confirm("ลบงานนี้จริงหรือไม่?")) return;
-    fetch(WEB_APP_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "delete", id })
-    }).then(r => r.text()).then(res => {
-        if (res === "deleted") fetchTasks();
-        else alert("ผิดพลาด: " + res);
-    });
-}
+    function renderAdminTasks() {
+        const container = document.getElementById('adminTasks');
+        container.innerHTML = '';
+        dummyTasks.forEach((t, i) => {
+            container.innerHTML += `
+                <div class="task-card">
+                    <h3>${t.title}</h3>
+                    <p>มอบหมายให้: ${t.assignTo} | กำหนดส่ง: ${t.due}</p>
+                    <p>สถานะ: <span class="status-${t.status}">${t.status}</span></p>
+                </div>
+            `;
+        });
+    }
 
-document.addEventListener("DOMContentLoaded", fetchTasks);
+    function renderUserTasks() {
+        const todo = document.getElementById('userTasks');
+        const submitted = document.getElementById('userSubmitted');
+        todo.innerHTML = '';
+        submitted.innerHTML = '';
+
+        dummyTasks.forEach(t => {
+            if (t.assignTo.toLowerCase() === currentUser.toLowerCase()) {
+                const card = `
+                    <div class="task-card">
+                        <h3>${t.title}</h3>
+                        <p>กำหนดส่ง: ${t.due}</p>
+                        <p>สถานะ: <span class="status-${t.status}">${t.status}</span></p>
+                        ${t.status === 'assigned' ? `<button onclick="submitWork('${t.title}')">ส่งงาน</button>` : ''}
+                    </div>
+                `;
+                if (t.status === 'assigned') {
+                    todo.innerHTML += card;
+                } else {
+                    submitted.innerHTML += card;
+                }
+            }
+        });
+    }
+
+    function submitWork(title) {
+        dummyTasks.forEach(t => {
+            if (t.title === title && t.assignTo.toLowerCase() === currentUser.toLowerCase()) {
+                t.status = 'submitted';
+            }
+        });
+        renderUserTasks();
+    }
 </script>
+
 </body>
 </html>
