@@ -111,7 +111,7 @@
 const dummyTasks = [];
 let currentUser = "";
 const userCredentials = { "admin": "1234", "luklnwza": "1234" };
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwNYhPrxqiy3JI9Vaj2Bs7kcpvuJh7F_EOAIZtPV0BcrAj2NdrsZtq0LB9lPj5Mo5i1Ng/exec";
+const WEB_APP_URL = "https://script.google.com/macros/s/YOUR_DEPLOYED_SCRIPT_ID/exec";
 
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("loginPassword").addEventListener("keydown", e => {
@@ -123,7 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function loadTasksFromSheet(callback) {
-  fetch(https://script.google.com/macros/s/AKfycbwNYhPrxqiy3JI9Vaj2Bs7kcpvuJh7F_EOAIZtPV0BcrAj2NdrsZtq0LB9lPj5Mo5i1Ng/exec)
+  fetch(WEB_APP_URL)
     .then(res => res.json())
     .then(data => {
       dummyTasks.length = 0;
