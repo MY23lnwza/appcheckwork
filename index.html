@@ -66,7 +66,7 @@
         }
 
         .status-approved { color: #23a55a; }
-        .status-edit { color: #f0b232; }
+        .status-edit_requested { color: #f0b232; }
         .status-assigned, .status-submitted { color: #faa81a; }
 
         #logoutBtn {
@@ -97,19 +97,16 @@
 
 <div class="container hidden" id="addTaskPage">
     <h1>เพิ่มงานใหม่</h1>
-    <label for="taskCreatedDate">วันที่สั่งงาน</label>
     <input type="text" id="taskCreatedDate" readonly />
-
     <input type="text" id="taskTitle" placeholder="ชื่องาน" />
-
-    <label for="taskAssignTo">มอบหมายให้ (เลือกผู้รับผิดชอบงาน)</label>
     <select id="taskAssignTo">
         <option value="" disabled selected>เลือกผู้รับผิดชอบงาน</option>
-        <!-- ตัวเลือกจะถูกเติมด้วย JavaScript -->
+        <option value="admin">admin</option>
+        <option value="luklnwza">luklnwza</option>
     </select>
-
     <input type="date" id="taskDue" />
     <textarea id="taskBrief" placeholder="รายละเอียด/บรีฟ"></textarea>
+    <input type="text" id="taskBriefLink" placeholder="ลิงก์บรีฟ (ถ้ามี)" />
     <button onclick="addTask()">บันทึกงาน</button>
     <button onclick="backToAdmin()">ย้อนกลับ</button>
 </div>
@@ -124,51 +121,58 @@
 </div>
 
 <script>
-    const dummyTasks = [];
-    let currentUser = "";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwNYhPrxqiy3JI9Vaj2Bs7kcpvuJh7F_EOAIZtPV0BcrAj2NdrsZtq0LB9lPj5Mo5i1Ng/exec"; // เปลี่ยนเป็น URL ของคุณ
 
     const userCredentials = {
         "admin": "1234",
-        "luklnwza": "1234",
-        "user1": "pass1",
-        "user2": "pass2"
+        "luklnwza": "1234"
     };
 
+    let dummyTasks = [];
+    let currentUser = "";
+
     document.addEventListener("DOMContentLoaded", () => {
-        // กด Enter เพื่อ Login
-        document.getElementById("loginPassword").addEventListener("keydown", function (e) {
-            if (e.key === "Enter") {
-                login();
-            }
+        document.getElementById("loginPassword").addEventListener("keydown", e => {
+            if (e.key === "Enter") login();
         });
 
-        populateUserOptions();
         setCreatedDate();
     });
 
-    function populateUserOptions() {
-        const select = document.getElementById("taskAssignTo");
-        select.innerHTML = `<option value="" disabled selected>เลือกผู้รับผิดชอบงาน</option>`;
-        for (const user in userCredentials) {
-            if (user !== "admin") { // ไม่เอา admin ใน dropdown
-                const option = document.createElement("option");
-                option.value = user;
-                option.textContent = user;
-                select.appendChild(option);
-            }
+    function setCreatedDate() {
+        const createdDateInput = document.getElementById("taskCreatedDate");
+        createdDateInput.value = new Date().toLocaleDateString("th-TH", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+        });
+    }
+
+    async function loadTasksFromSheet() {
+        try {
+            const response = await fetch(WEB_APP_URL);
+            const data = await response.json();
+            dummyTasks = data;
+            if(currentUser === 'admin') renderAdminTasks();
+            else renderUserTasks();
+        } catch (error) {
+            alert("โหลดข้อมูลงานล้มเหลว: " + error.message);
         }
     }
 
-    function setCreatedDate() {
-        const createdDateInput = document.getElementById("taskCreatedDate");
-        const today = new Date();
-        const yyyy = today.getFullYear();
-        const mm = String(today.getMonth() + 1).padStart(2, "0");
-        const dd = String(today.getDate()).padStart(2, "0");
-        createdDateInput.value = `${yyyy}-${mm}-${dd}`;
+    async function sendTaskToSheet(task) {
+        try {
+            await fetch(WEB_APP_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(task),
+            });
+        } catch (error) {
+            alert("ส่งข้อมูลงานล้มเหลว: " + error.message);
+        }
     }
 
-    function login() {
+    async function login() {
         const username = document.getElementById("loginUsername").value.trim().toLowerCase();
         const password = document.getElementById("loginPassword").value;
 
@@ -179,29 +183,21 @@
 
         currentUser = username;
         document.getElementById("loginPage").classList.add("hidden");
-        document.querySelectorAll("#logoutBtn").forEach((btn) =>
-            btn.classList.remove("hidden")
-        );
+        document.querySelectorAll("#logoutBtn").forEach(btn => btn.classList.remove("hidden"));
+
+        await loadTasksFromSheet();
 
         if (username === "admin") {
             document.getElementById("adminPage").classList.remove("hidden");
-            renderAdminTasks();
         } else {
             document.getElementById("userPage").classList.remove("hidden");
-            renderUserTasks();
         }
     }
 
     function logout() {
         currentUser = "";
-        document.querySelectorAll("#logoutBtn").forEach((btn) =>
-            btn.classList.add("hidden")
-        );
-
-        ["adminPage", "userPage", "addTaskPage"].forEach((id) => {
-            document.getElementById(id).classList.add("hidden");
-        });
-
+        document.querySelectorAll("#logoutBtn").forEach(btn => btn.classList.add("hidden"));
+        ["adminPage", "userPage", "addTaskPage"].forEach(id => document.getElementById(id).classList.add("hidden"));
         document.getElementById("loginPage").classList.remove("hidden");
         document.getElementById("loginUsername").value = "";
         document.getElementById("loginPassword").value = "";
@@ -210,7 +206,8 @@
     function showAddTaskForm() {
         document.getElementById("adminPage").classList.add("hidden");
         document.getElementById("addTaskPage").classList.remove("hidden");
-        setCreatedDate(); // อัปเดตวันที่สั่งงานใหม่ทุกครั้งที่เปิดฟอร์ม
+        setCreatedDate();
+        clearAddTaskForm();
     }
 
     function backToAdmin() {
@@ -219,12 +216,21 @@
         renderAdminTasks();
     }
 
-    function addTask() {
+    function clearAddTaskForm() {
+        document.getElementById("taskTitle").value = "";
+        document.getElementById("taskAssignTo").value = "";
+        document.getElementById("taskDue").value = "";
+        document.getElementById("taskBrief").value = "";
+        document.getElementById("taskBriefLink").value = "";
+    }
+
+    async function addTask() {
         const createdDate = document.getElementById("taskCreatedDate").value;
         const title = document.getElementById("taskTitle").value.trim();
         const assignTo = document.getElementById("taskAssignTo").value;
         const due = document.getElementById("taskDue").value;
         const brief = document.getElementById("taskBrief").value.trim();
+        const briefLink = document.getElementById("taskBriefLink").value.trim();
 
         if (!title || !assignTo || !due) {
             alert("กรุณากรอกข้อมูลให้ครบ");
@@ -237,43 +243,55 @@
             assignTo,
             due,
             brief,
+            briefLink,
             status: "assigned",
+            comment: "",
         };
 
         dummyTasks.push(newTask);
 
-        // ส่งข้อมูลไป Google Sheet (แก้ URL เป็นของคุณเอง)
-        fetch(
-            "https://script.google.com/macros/s/AKfycbwNYhPrxqiy3JI9Vaj2Bs7kcpvuJh7F_EOAIZtPV0BcrAj2NdrsZtq0LB9lPj5Mo5i1Ng/exec",
-            {
-                method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(newTask),
-            }
-        );
+        await sendTaskToSheet(newTask);
 
         alert("เพิ่มงานสำเร็จ");
-
-        // รีเซ็ตฟอร์ม
-        document.getElementById("taskTitle").value = "";
-        document.getElementById("taskAssignTo").value = "";
-        document.getElementById("taskDue").value = "";
-        document.getElementById("taskBrief").value = "";
-
+        clearAddTaskForm();
         backToAdmin();
     }
 
     function renderAdminTasks() {
         const container = document.getElementById("adminTasks");
         container.innerHTML = "";
-        dummyTasks.forEach((t) => {
+
+        dummyTasks.forEach((t, i) => {
+            let briefLinkHtml = "";
+            if (t.briefLink) {
+                briefLinkHtml = `<p>ลิงก์บรีฟ: <a href="${t.briefLink}" target="_blank">${t.briefLink}</a></p>`;
+            }
+            let commentInput = '';
+            let buttons = '';
+
+            if (t.status === 'submitted') {
+                commentInput = `<textarea id="comment-${i}" placeholder="หมายเหตุสำหรับแก้ไข..." rows="2"></textarea>`;
+                buttons = `
+                    <button onclick="requestEdit(${i})" style="background:#f0b232;">ขอแก้ไข</button>
+                    <button onclick="approveTask(${i})" style="background:#23a55a;">อนุมัติ</button>
+                `;
+            } else if (t.status === 'edit_requested') {
+                commentInput = `<p><b>หมายเหตุจากผู้รับงาน:</b> ${t.comment || "-"}</p>`;
+                buttons = `
+                    <button onclick="approveTask(${i})" style="background:#23a55a;">อนุมัติ</button>
+                `;
+            }
+
             container.innerHTML += `
                 <div class="task-card">
                     <h3>${t.title}</h3>
                     <p>วันที่สั่ง: ${t.createdDate}</p>
                     <p>มอบหมายให้: ${t.assignTo} | กำหนดส่ง: ${t.due}</p>
                     <p>สถานะ: <span class="status-${t.status}">${t.status}</span></p>
+                    <p>รายละเอียด: ${t.brief || '-'}</p>
+                    ${briefLinkHtml}
+                    ${commentInput}
+                    ${buttons}
                 </div>
             `;
         });
@@ -285,22 +303,29 @@
         todo.innerHTML = "";
         submitted.innerHTML = "";
 
-        dummyTasks.forEach((t) => {
+        dummyTasks.forEach((t, i) => {
             if (t.assignTo.toLowerCase() === currentUser.toLowerCase()) {
-                const card = `
+                let briefLinkHtml = "";
+                if (t.briefLink) {
+                    briefLinkHtml = `<p>ลิงก์บรีฟ: <a href="${t.briefLink}" target="_blank">${t.briefLink}</a></p>`;
+                }
+
+                let commentHtml = t.comment ? `<p><b>หมายเหตุ:</b> ${t.comment}</p>` : "";
+
+                let card = `
                     <div class="task-card">
                         <h3>${t.title}</h3>
                         <p>วันที่สั่ง: ${t.createdDate}</p>
                         <p>กำหนดส่ง: ${t.due}</p>
                         <p>สถานะ: <span class="status-${t.status}">${t.status}</span></p>
-                        ${
-                            t.status === "assigned"
-                                ? `<button onclick="submitWork('${t.title}')">ส่งงาน</button>`
-                                : ""
-                        }
+                        <p>รายละเอียด: ${t.brief || '-'}</p>
+                        ${briefLinkHtml}
+                        ${commentHtml}
+                        ${t.status === "assigned" ? `<button onclick="submitWork(${i})">ส่งงาน</button>` : ""}
                     </div>
                 `;
-                if (t.status === "assigned") {
+
+                if (t.status === "assigned" || t.status === "edit_requested") {
                     todo.innerHTML += card;
                 } else {
                     submitted.innerHTML += card;
@@ -309,13 +334,36 @@
         });
     }
 
-    function submitWork(title) {
-        dummyTasks.forEach((t) => {
-            if (t.title === title && t.assignTo.toLowerCase() === currentUser.toLowerCase()) {
-                t.status = "submitted";
-            }
-        });
+    async function requestEdit(index) {
+        const comment = document.getElementById(`comment-${index}`).value.trim();
+        if (!comment) {
+            alert("กรุณากรอกหมายเหตุสำหรับขอแก้ไข");
+            return;
+        }
+        dummyTasks[index].status = "edit_requested";
+        dummyTasks[index].comment = comment;
+        await sendTaskToSheet(dummyTasks[index]);
+        alert("ส่งคำขอแก้ไขเรียบร้อย");
+        renderAdminTasks();
         renderUserTasks();
+    }
+
+    async function approveTask(index) {
+        dummyTasks[index].status = "approved";
+        dummyTasks[index].comment = "";
+        await sendTaskToSheet(dummyTasks[index]);
+        alert("อนุมัติงานเรียบร้อย");
+        renderAdminTasks();
+        renderUserTasks();
+    }
+
+    async function submitWork(index) {
+        dummyTasks[index].status = "submitted";
+        dummyTasks[index].comment = "";
+        await sendTaskToSheet(dummyTasks[index]);
+        alert("ส่งงานเรียบร้อย");
+        renderUserTasks();
+        renderAdminTasks();
     }
 </script>
 
