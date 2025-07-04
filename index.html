@@ -110,40 +110,48 @@
 <script>
 const dummyTasks = [];
 let currentUser = "";
-
-const userCredentials = {
-  "admin": "1234",
-  "luklnwza": "1234"
-};
-
+const userCredentials = { "admin": "1234", "luklnwza": "1234" };
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwNYhPrxqiy3JI9Vaj2Bs7kcpvuJh7F_EOAIZtPV0BcrAj2NdrsZtq0LB9lPj5Mo5i1Ng/exec";
 
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("loginPassword").addEventListener("keydown", e => {
     if (e.key === "Enter") login();
   });
-
   document.getElementById("taskCreatedDate").value = new Date().toLocaleDateString("th-TH", {
     year: "numeric", month: "2-digit", day: "2-digit"
   });
 });
 
+function loadTasksFromSheet(callback) {
+  fetch(https://script.google.com/macros/s/AKfycbwNYhPrxqiy3JI9Vaj2Bs7kcpvuJh7F_EOAIZtPV0BcrAj2NdrsZtq0LB9lPj5Mo5i1Ng/exec)
+    .then(res => res.json())
+    .then(data => {
+      dummyTasks.length = 0;
+      dummyTasks.push(...data);
+      if (callback) callback();
+    })
+    .catch(err => {
+      console.error("โหลดงานล้มเหลว", err);
+      alert("โหลดงานล้มเหลว กรุณาลองใหม่");
+    });
+}
+
 function login() {
   const username = document.getElementById("loginUsername").value.trim().toLowerCase();
   const password = document.getElementById("loginPassword").value;
   if (!username || userCredentials[username] !== password) return alert("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
-
   currentUser = username;
   document.getElementById("loginPage").classList.add("hidden");
   document.querySelectorAll("#logoutBtn").forEach(btn => btn.classList.remove("hidden"));
-
-  if (username === "admin") {
-    document.getElementById("adminPage").classList.remove("hidden");
-    renderAdminTasks();
-  } else {
-    document.getElementById("userPage").classList.remove("hidden");
-    renderUserTasks();
-  }
+  loadTasksFromSheet(() => {
+    if (username === "admin") {
+      document.getElementById("adminPage").classList.remove("hidden");
+      renderAdminTasks();
+    } else {
+      document.getElementById("userPage").classList.remove("hidden");
+      renderUserTasks();
+    }
+  });
 }
 
 function logout() {
@@ -175,14 +183,11 @@ function addTask() {
   const assignTo = document.getElementById("taskAssignTo").value;
   const due = document.getElementById("taskDue").value;
   const brief = document.getElementById("taskBrief").value.trim();
-
   if (!title || !assignTo || !due) return alert("กรุณากรอกข้อมูลให้ครบ");
-
   const newTask = { createdDate, title, assignTo, due, brief, status: "assigned" };
   dummyTasks.push(newTask);
   renderAdminTasks();
-
-  fetch("https://script.google.com/macros/s/AKfycbwNYhPrxqiy3JI9Vaj2Bs7kcpvuJh7F_EOAIZtPV0BcrAj2NdrsZtq0LB9lPj5Mo5i1Ng/exec", {
+  fetch(WEB_APP_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(newTask)
@@ -217,7 +222,6 @@ function renderUserTasks() {
   const submitted = document.getElementById("userSubmitted");
   todo.innerHTML = "";
   submitted.innerHTML = "";
-
   dummyTasks.forEach(t => {
     if (t.assignTo.toLowerCase() === currentUser.toLowerCase()) {
       const card = `
@@ -240,7 +244,7 @@ function renderUserTasks() {
 }
 
 function submitWork(title) {
-  dummyTasks.forEach(t => {
+  dummyTasks.forEach((t) => {
     if (t.title === title && t.assignTo.toLowerCase() === currentUser.toLowerCase()) {
       t.status = "submitted";
     }
